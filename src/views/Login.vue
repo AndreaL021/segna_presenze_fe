@@ -28,12 +28,6 @@
             <ion-button expand="block" :disabled="loading" @click="submit"
               >Entra</ion-button
             >
-            <div class="ion-text-center" style="margin-top: 12px; display: flex; align-items: center;">
-              <ion-text>Non hai un account?</ion-text>
-              <ion-button fill="clear" size="small" router-link="/register"
-                >Registrati</ion-button
-              >
-            </div>
 
             <p v-if="error" style="color: var(--ion-color-danger)">
               {{ error }}

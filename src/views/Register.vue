@@ -1,58 +1,37 @@
 <template>
   <ion-page>
     <ion-header>
-      <ion-toolbar><ion-title>Registrati</ion-title></ion-toolbar>
+      <ion-toolbar>
+        <ion-title>Crea utente</ion-title>
+        <ion-buttons slot="end">
+          <ion-button router-link="/users">Utenti</ion-button>
+          <ion-button router-link="/attendance">Presenze</ion-button>
+          <ion-button @click="doLogout">Logout</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
     </ion-header>
+
     <ion-content class="ion-padding">
-      <div
-        style="
-          height: 100%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        "
-      >
-        <ion-grid>
-          <ion-row
-            style="display: flex; justify-content: center; align-items: center"
-          >
-            <ion-col size="12" size-md="6" size-lg="6">
-              <ion-list>
-                <ion-item
-                  ><ion-input v-model="name" placeholder="Nome completo"
-                /></ion-item>
-                <ion-item
-                  ><ion-input type="email" v-model="email" placeholder="Email"
-                /></ion-item>
-                <ion-item
-                  ><ion-input
-                    type="password"
-                    v-model="password"
-                    placeholder="Password"
-                /></ion-item>
-              </ion-list>
+      <div style="max-width: 560px; margin: 0 auto;">
+        <ion-list>
+          <ion-item>
+            <ion-input v-model="name" label="Nome completo" label-placement="floating" />
+          </ion-item>
+          <ion-item>
+            <ion-input type="email" v-model="email" label="Email" label-placement="floating" />
+          </ion-item>
+          <ion-item>
+            <ion-input type="text" v-model="password" label="Password" label-placement="floating" />
+          </ion-item>
+        </ion-list>
 
-              <ion-item lines="none">
-                <ion-checkbox slot="start" v-model="remember" />
-                <ion-label>Rimani connesso</ion-label>
-              </ion-item>
+        <ion-button expand="block" :disabled="loadingState || !name || !email || !password" @click="submit">
+          Crea utente
+        </ion-button>
 
-              <ion-button expand="block" :disabled="loading" @click="submit"
-                >Crea account</ion-button
-              >
-              <div class="ion-text-center" style="margin-top: 12px; display: flex; align-items: center;">
-                <ion-text>Hai già un account?</ion-text>
-                <ion-button fill="clear" size="small" router-link="/login"
-                  >Vai al login</ion-button
-                >
-              </div>
-
-              <p v-if="error" style="color: var(--ion-color-danger)">
-                {{ error }}
-              </p>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
+        <p v-if="error" style="color: var(--ion-color-danger); margin-top: 12px;">
+          {{ error }}
+        </p>
       </div>
     </ion-content>
   </ion-page>
@@ -60,42 +39,46 @@
 
 <script setup lang="ts">
 import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonList,
-  IonItem,
-  IonInput,
-  IonButton,
-  IonCheckbox,
-  IonLabel,
-  IonText,
+  IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
+  IonContent, IonList, IonItem, IonInput
 } from "@ionic/vue";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { register, login } from "@/lib/auth";
+import { logout } from "@/lib/auth";
+import { createUser } from "@/lib/users"; // 👈 nuova funzione
+import { errorToast } from "@/lib/notify"; // se vuoi mostrare un toast di errore
 
 const router = useRouter();
 const name = ref("");
 const email = ref("");
 const password = ref("");
-const remember = ref(true);
-const loading = ref(false);
+const loadingState = ref(false);
 const error = ref<string | null>(null);
 
 const submit = async () => {
   error.value = null;
-  loading.value = true;
+  loadingState.value = true;
   try {
-    await register(name.value, email.value, password.value);
-    await login(email.value, password.value, remember.value);
-    router.replace("/attendance");
-  } catch (e: any) {
-    error.value = e?.response?.data?.message ?? "Errore registrazione";
-  } finally {
-    loading.value = false;
+    if (!name.value || !email.value || !password.value) {
+      throw new Error("Compila tutti i campi");
+    }
+    await createUser({ name: name.value, email: email.value, password: password.value });
+
+    // UX: torna alla lista utenti
+    // (in alternativa: pulisci il form e resta qui)
+    router.replace("/users");
+} catch (e: any) {
+  const msg = e?.response?.data?.message ?? e?.message ?? 'Errore creazione utente';
+  error.value = msg;
+  // mostra il toast “a mano”
+  errorToast.show(msg)
+} finally {
+    loadingState.value = false;
   }
+};
+
+const doLogout = async () => {
+  await logout();
+  router.replace("/login");
 };
 </script>

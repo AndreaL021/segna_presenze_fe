@@ -4,7 +4,7 @@ import Users from '@/views/Users.vue';
 import Attendance from '@/views/Attendance.vue';
 import Login from '@/views/Login.vue';
 import Register from '@/views/Register.vue';
-import { secureStorage } from '@/lib/auth';
+// import { secureStorage } from '@/lib/auth';
 import { sessionRole, loadRoleFromToken } from '@/lib/session';
 import { isAccessTokenValid, clearTokens } from '@/lib/session';
 
