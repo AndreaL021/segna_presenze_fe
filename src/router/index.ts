@@ -6,6 +6,7 @@ import Login from '@/views/Login.vue';
 import Register from '@/views/Register.vue';
 import { secureStorage } from '@/lib/auth';
 import { sessionRole, loadRoleFromToken } from '@/lib/session';
+import { isAccessTokenValid, clearTokens } from '@/lib/session';
 
 const routes = [
   { path: '/register', component: Register, meta: { requiresAuth: true, adminOnly: true } }, // pubblica
@@ -27,23 +28,27 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to) => {
-  // token dal secure storage
-  const token = await secureStorage.sget('access_token');
+  const hasValidToken = await isAccessTokenValid();
 
-  // se la rotta è pubblica, ma sei già loggato, evita di vedere login/register
+  // Rotte pubbliche
   if (!to.meta?.requiresAuth) {
-    if (token && (to.path === '/login' || to.path === '/register')) {
+    // se hai un token valido e provi a vedere login/register → mandalo su /attendance
+    if (hasValidToken && (to.path === '/login' || to.path === '/register')) {
       return '/attendance';
     }
     return true;
   }
 
-  // rotta protetta: serve token
-  if (!token) return '/login';
+  // Rotte protette
+  if (!hasValidToken) {
+    // token assente o scaduto → pulisci e manda a /login
+    await clearTokens();
+    return '/login';
+  }
 
-  // rotta solo admin
+  // Rotte solo admin
   if (to.meta?.adminOnly) {
-    if (!sessionRole.value) await loadRoleFromToken(); // assicura che il ruolo sia in memoria
+    if (!sessionRole.value) await loadRoleFromToken();
     if (sessionRole.value !== 'admin') return '/attendance';
   }
 
