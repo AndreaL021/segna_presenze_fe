@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router';
+import { registerSW } from 'virtual:pwa-register'
+import { showUpdateBanner} from '@/lib/pwa-update'
 
 import { IonicVue } from '@ionic/vue';
 
@@ -33,6 +35,12 @@ import '@ionic/vue/css/palettes/dark.system.css';
 
 /* Theme variables */
 import './theme/variables.css';
+
+registerSW({
+  immediate: true,
+  onNeedRefresh() { showUpdateBanner.open() },   // c'è una nuova versione
+  onOfflineReady() { /* opzionale: show toast “pronto offline” */ },
+})
 
 const app = createApp(App)
   .use(IonicVue)

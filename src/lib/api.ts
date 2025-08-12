@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { secureStorage, refreshTokens } from './auth';
 import { loading } from './loading';
+import { showError } from './notify';
 
 export const API = axios.create({
   // URL dell'API
@@ -91,6 +92,16 @@ API.interceptors.response.use(
       // la nuova request riaccenderà il loader nel request interceptor
       return API(original);
     }
+
+    if (error.response) {
+      const status = error.response.status;
+      const msg = error.response.data?.message || error.message || 'Errore di rete';
+
+      showError(Array.isArray(msg) ? msg.join(', ') : String(msg));
+    } else {
+      showError('Connessione assente o server irraggiungibile');
+    }
+    throw error;
 
     // altri errori
     throw error;
