@@ -73,6 +73,7 @@ import {
   IonLabel,
   IonSelect,
   IonSelectOption,
+  onIonViewWillEnter
 } from "@ionic/vue";
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -161,6 +162,12 @@ onMounted(() => {
   viewedUserId.value = idParam ? Number(idParam) : null; // solo per abilitare/disabilitare edit
   load();
 });
+// 2) ogni volta che torni su questa vista
+onIonViewWillEnter(() => {
+  const idParam = route.params.userId as string | undefined;
+  viewedUserId.value = idParam ? Number(idParam) : null; // solo per abilitare/disabilitare edit
+  load();
+})
 
 watch(current, load);
 watch(

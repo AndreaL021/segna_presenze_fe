@@ -66,6 +66,7 @@ import {
   IonSearchbar,
   IonRefresher,
   IonRefresherContent,
+  onIonViewWillEnter
 } from "@ionic/vue";
 import { ref, onMounted, computed } from "vue";
 import { listAllUsers, type User } from "@/lib/users";
@@ -108,4 +109,6 @@ const filtered = computed(() => {
 });
 
 onMounted(loadAll);
+// 2) ogni volta che torni su questa vista
+onIonViewWillEnter(loadAll)
 </script>

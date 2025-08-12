@@ -18,7 +18,7 @@ const routes = [
   // utente loggato (se stesso)
   { path: '/attendance', component: Attendance, meta: { requiresAuth: true } },
 
-  { path: '/', redirect: '/attendance' },
+  { path: '/', redirect: '/login' },
 ];
 
 const router = createRouter({
