@@ -1,6 +1,7 @@
 import { API } from './api';
 import { SecureStoragePlugin } from 'capacitor-secure-storage-plugin';
 import { Preferences } from '@capacitor/preferences';
+import { loadRoleFromToken } from './session'
 
 // helpers: secure storage con fallback a Preferences (browser)
 async function sset(key: string, value: string) {
@@ -29,13 +30,16 @@ export async function login(email: string, password: string, remember: boolean) 
   } else {
     await sremove('refresh_token');
   }
+
+  await loadRoleFromToken();
   return data;
 }
 
 export async function logout() {
-  try { await API.post('/auth/logout'); } catch {}
+  try { await API.post('/auth/logout'); } catch { }
   await sremove('access_token');
   await sremove('refresh_token');
+  await loadRoleFromToken();
 }
 
 export async function refreshTokens() {
@@ -44,6 +48,7 @@ export async function refreshTokens() {
   const { data } = await API.post('/auth/refresh', { refreshToken: rt });
   await sset('access_token', data.access_token);
   await sset('refresh_token', data.refresh_token); // rotazione
+  await loadRoleFromToken();
   return data;
 }
 

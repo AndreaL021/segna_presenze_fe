@@ -4,7 +4,7 @@
       <ion-toolbar>
         <ion-title>Presenze</ion-title>
         <ion-buttons slot="end">
-          <ion-button router-link="/users">Utenti</ion-button>
+          <ion-button router-link="/users" v-if="sessionRole==='admin'">Utenti</ion-button>
           <ion-button @click="doLogout">Logout</ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -78,6 +78,7 @@ import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getCalendar, updateByDate, type DayEntry } from "@/lib/attendance";
 import { logout } from "@/lib/auth";
+import { sessionRole } from "@/lib/session";
 
 const router = useRouter();
 const route = useRoute();

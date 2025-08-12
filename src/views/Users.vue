@@ -16,6 +16,9 @@
           show-clear-button="focus"
           @ionClear="() => (search = '')"
         />
+        <ion-buttons slot="end">
+          <ion-button router-link="/register">Aggiungi utente</ion-button>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
 

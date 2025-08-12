@@ -34,11 +34,12 @@
 
 <script setup lang="ts">
 import { IonApp, IonRouterOutlet, IonLoading, IonToast } from "@ionic/vue";
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { loading } from "@/lib/loading";
 import { errorToast } from "@/lib/notify";
 import { showUpdateBanner as upd } from "@/lib/pwa-update";
 import InstallBanner from "@/components/InstallBanner.vue";
+import { loadRoleFromToken } from "@/lib/session";
 
 const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const isStandalone =
@@ -51,4 +52,9 @@ const isLoading = computed(() => loading.isLoading.value);
 const open = errorToast.open;
 const message = errorToast.message;
 const close = errorToast.close;
+
+// Carica il ruolo quando l'app è montata
+onMounted(async () => {
+  await loadRoleFromToken();
+});
 </script>
