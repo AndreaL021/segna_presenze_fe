@@ -12,6 +12,10 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // alza il limite del file precache (es. 5 MB)
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
       devOptions: { enabled: true }, 
       manifest: {
         name: 'Segna Presenze',
