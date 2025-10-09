@@ -37,6 +37,21 @@ import '@ionic/vue/css/palettes/dark.system.css';
 /* Theme variables */
 import './theme/variables.css';
 
+
+/* import the fontawesome core */
+import { library } from '@fortawesome/fontawesome-svg-core'
+
+/* import font awesome icon component */
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+/* import specific icons */
+import { fab } from '@fortawesome/free-brands-svg-icons'
+import { far } from '@fortawesome/free-regular-svg-icons'
+import { fas } from '@fortawesome/free-solid-svg-icons'
+
+/* add icons to the library */
+library.add(fab, far, fas)
+
 registerSW({
   immediate: true,
   onNeedRefresh() { showUpdateBanner.open() },   // c'è una nuova versione
@@ -45,7 +60,8 @@ registerSW({
 
 const app = createApp(App)
   .use(IonicVue)
-  .use(router);
+  .use(router)
+  .component('fa-i', FontAwesomeIcon);
 
 router.isReady().then(() => {
 

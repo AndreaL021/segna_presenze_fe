@@ -7,9 +7,11 @@ import Register from '@/views/Register.vue';
 // import { secureStorage } from '@/lib/auth';
 import { sessionRole, loadRoleFromToken } from '@/lib/session';
 import { isAccessTokenValid, clearTokens } from '@/lib/session';
+import Edit from '@/views/Edit.vue';
 
 const routes = [
-  { path: '/register', component: Register, meta: { requiresAuth: true, adminOnly: true } }, // pubblica
+  { path: '/register', component: Register, meta: { requiresAuth: true, adminOnly: true } }, 
+  { path: '/edit/:userId', component: Edit, meta: { requiresAuth: true } }, 
   { path: '/login', component: Login },       // pubblica
 
   // solo admin
@@ -53,6 +55,10 @@ router.beforeEach(async (to) => {
   }
 
   return true;
+});
+router.afterEach(() => {
+  const el = document.activeElement as HTMLElement | null;
+  el?.blur();
 });
 
 export default router;

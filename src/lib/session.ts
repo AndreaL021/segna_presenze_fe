@@ -5,15 +5,18 @@ import { parseJwt } from './jwt';
 export type Role = 'user' | 'admin';
 
 export const sessionRole = ref<Role | null>(null);
+export const sessionUserId = ref<number | null>(null);
 
 export async function loadRoleFromToken() {
   const token = await secureStorage.sget('access_token');
   if (!token) {
     sessionRole.value = null;
+    sessionUserId.value = null
     return;
   }
-  const payload = parseJwt<{ role?: Role }>(token);
+  const payload = parseJwt<{ role?: Role; sub?: number | string; }>(token);
   sessionRole.value = (payload?.role ?? null) as Role | null;
+  sessionUserId.value = payload?.sub != null ? (typeof payload.sub === 'string' ? Number(payload.sub) : payload.sub) : null;
 }
 
 export async function isAccessTokenValid(): Promise<boolean> {

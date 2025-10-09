@@ -45,7 +45,7 @@ export async function logout() {
 export async function refreshTokens() {
   const rt = await sget('refresh_token');
   if (!rt) throw new Error('No refresh token');
-  const { data } = await API.post('/auth/refresh', { refreshToken: rt });
+  const { data } = await API.post('/auth/refresh', { refreshToken: rt }, { timeout: 10000 });
   await sset('access_token', data.access_token);
   await sset('refresh_token', data.refresh_token); // rotazione
   await loadRoleFromToken();

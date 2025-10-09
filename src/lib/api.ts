@@ -23,8 +23,17 @@ API.interceptors.request.use(
     // token
     const token = await secureStorage.sget('access_token');
     if (token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const now = Math.floor(Date.now() / 1000);
+      if (payload?.exp && payload.exp - now < 300) {
+        try { await refreshTokens(); } catch { /* se fallisce → si andrà su 401 */ }
+      }
+    }
+    // Usa SEMPRE il token aggiornato dopo il possibile refresh
+    const fresh = await secureStorage.sget('access_token');
+    if (fresh) {
       config.headers = config.headers ?? {};
-      (config.headers as any).Authorization = `Bearer ${token}`;
+      (config.headers as any).Authorization = `Bearer ${fresh}`;
     }
     return config;
   },
@@ -61,35 +70,51 @@ API.interceptors.response.use(
       loading.stop();
     }
 
-    // se 401 e non già ritentata
-    if (error?.response?.status === 401 && !original?._retry) {
-      original._retry = true;
+    const status = error?.response?.status;
+    const url = (original?.url || '') as string;
 
+    // Non provare refresh per queste route
+    const isAuthRoute = url.includes('/auth/refresh') || url.includes('/auth/logout');
+
+    // se 401 e non già ritentata
+    if (status === 401 && !original?._retry && !isAuthRoute) {
+      original._retry = true;
+      // ⬇️ Fast-exit: niente refresh se non ho RT
+      const rt = await secureStorage.sget('refresh_token');
+      if (!rt) {
+        await secureStorage.sremove('access_token');
+        await secureStorage.sremove('refresh_token');
+        // redirect immediato
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
       if (!refreshing) {
         refreshing = true;
         try {
-          await refreshTokens();              // rinnova token
+          await refreshTokens();   // rinnova e ruota i token
+          refreshing = false;
           queue.forEach((fn) => fn());        // sblocca chi aspettava
           queue = [];
-        } catch {
-          // refresh fallito → logout "soft"
+        } catch (e) {
+          refreshing = false;
+          queue.forEach((fn) => fn());
+          queue = [];
+          // refresh fallito -> logout soft
           await secureStorage.sremove('access_token');
           await secureStorage.sremove('refresh_token');
-          refreshing = false;
           throw error;
         }
-        refreshing = false;
+      } else {
+        // c'è già un refresh in corso: aspetto che finisca
+        await new Promise<void>((resolve) => queue.push(resolve));
       }
 
-      // metti in coda finché il refresh non termina
-      await new Promise<void>((resolve) => queue.push(resolve));
 
-      // riprova la request con il nuovo token
-      const token = await secureStorage.sget('access_token');
+      // riprova la request con il token aggiornato
+      const fresh = await secureStorage.sget('access_token');
       original.headers = original.headers ?? {};
-      (original.headers as any).Authorization = token ? `Bearer ${token}` : '';
+      (original.headers as any).Authorization = fresh ? `Bearer ${fresh}` : '';
 
-      // la nuova request riaccenderà il loader nel request interceptor
       return API(original);
     }
 
@@ -101,9 +126,8 @@ API.interceptors.response.use(
     } else {
       showError('Connessione assente o server irraggiungibile');
     }
-    throw error;
-
     // altri errori
     throw error;
+
   },
 );

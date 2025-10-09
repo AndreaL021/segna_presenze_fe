@@ -2,10 +2,17 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Presenze</ion-title>
+        <ion-title>Presenze {{ name }}</ion-title>
         <ion-buttons slot="end">
-          <ion-button router-link="/users" v-if="sessionRole==='admin'">Utenti</ion-button>
-          <ion-button @click="doLogout">Logout</ion-button>
+          <ion-button router-link="/users" v-if="sessionRole === 'admin'"
+            ><fa-i style="font-size: 24px" icon="fa-solid fa-users" />
+          </ion-button>
+          <ion-button @click="doLogout"
+            ><fa-i
+              style="font-size: 24px"
+              icon="fa-solid fa-right-from-bracket"
+            />
+          </ion-button>
         </ion-buttons>
       </ion-toolbar>
       <ion-toolbar>
@@ -31,7 +38,6 @@
             interface="popover"
             :value="map[d.date]?.status || ''"
             v-if="!viewedUserId"
-            placeholder="—"
             @ionChange="(e) => changeStatus(d.date, e.detail.value)"
           >
             <ion-select-option value="present">Presente</ion-select-option>
@@ -73,9 +79,9 @@ import {
   IonLabel,
   IonSelect,
   IonSelectOption,
-  onIonViewWillEnter
+  onIonViewWillEnter,
 } from "@ionic/vue";
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getCalendar, updateByDate, type DayEntry } from "@/lib/attendance";
 import { logout } from "@/lib/auth";
@@ -83,10 +89,11 @@ import { sessionRole } from "@/lib/session";
 
 const router = useRouter();
 const route = useRoute();
-const viewedUserId = ref<number | null>(null); // già gestito per /attendance/:userId, se vuoi puoi mantenerlo solo per mostrare "read-only"
+const viewedUserId = ref<number | null>(null); // già gestito per /attendance/:userId
 const current = ref(new Date()); // mese mostrato
 const map = ref<Record<string, DayEntry>>({});
 const loading = ref(false);
+const name = ref("");
 
 const titleMonth = computed(() =>
   current.value.toLocaleDateString(undefined, {
@@ -117,8 +124,14 @@ async function load() {
     const month = current.value.getMonth();
     const from = new Date(year, month, 1).toISOString().slice(0, 10);
     const to = new Date(year, month + 1, 0).toISOString().slice(0, 10);
-    const data = await getCalendar({ from, to, userId:viewedUserId.value ?? undefined, });
-    map.value = data.days || {};
+    const response = await getCalendar({
+      from,
+      to,
+      userId: viewedUserId.value ?? undefined,
+    });
+    
+    map.value = response.data.days || {};
+    name.value = response.user.name;
   } finally {
     loading.value = false;
   }
@@ -140,7 +153,6 @@ function nextMonth() {
 }
 
 async function changeStatus(date: string, val: string) {
-  // se selezioni vuoto, puoi decidere se cancellare record (qui mettiamo note vuota e niente status → opzionale)
   if (!val) {
     // per semplicità: imposta assenza di stato = rimuovi record? (serve endpoint DELETE by date se vuoi)
     // Qui invece azzeriamo localmente:
@@ -148,7 +160,7 @@ async function changeStatus(date: string, val: string) {
     return;
   }
   await updateByDate({ date, status: val as any });
-  // aggiorna localmente per UX snappy
+  // aggiorna localmente per UX
   map.value[date] = { ...(map.value[date] || {}), status: val as any };
 }
 
@@ -157,17 +169,12 @@ const doLogout = async () => {
   router.replace("/login");
 };
 
-onMounted(() => {
-  const idParam = route.params.userId as string | undefined;
-  viewedUserId.value = idParam ? Number(idParam) : null; // solo per abilitare/disabilitare edit
-  load();
-});
 // 2) ogni volta che torni su questa vista
 onIonViewWillEnter(() => {
   const idParam = route.params.userId as string | undefined;
   viewedUserId.value = idParam ? Number(idParam) : null; // solo per abilitare/disabilitare edit
   load();
-})
+});
 
 watch(current, load);
 watch(
