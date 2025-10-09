@@ -90,11 +90,12 @@ import {
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { login } from "@/lib/auth";
+import type { TextFieldTypes } from "@ionic/core";
 
 const router = useRouter();
 const email = ref("");
 const password = ref("");
-const type = ref("password");
+const type = ref<TextFieldTypes>("password");
 const remember = ref(true);
 const loading = ref(false);
 const error = ref<string | null>(null);

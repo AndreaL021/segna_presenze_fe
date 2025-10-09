@@ -4,16 +4,13 @@
       <ion-toolbar>
         <ion-title>Create user</ion-title>
         <ion-buttons slot="end">
-          <ion-button
-            router-link="/users"
+          <ion-button router-link="/users"
             ><fa-i style="font-size: 24px" icon="fa-solid fa-users"
           /></ion-button>
-          <ion-button
-            router-link="/attendance"
+          <ion-button router-link="/attendance"
             ><fa-i style="font-size: 24px" icon="fa-solid fa-list"
           /></ion-button>
-          <ion-button
-            @click="doLogout"
+          <ion-button @click="doLogout"
             ><fa-i
               style="font-size: 24px"
               icon="fa-solid fa-right-from-bracket"
@@ -111,12 +108,13 @@ import { logout } from "@/lib/auth";
 import { createUser } from "@/lib/users";
 import { errorToast } from "@/lib/notify";
 import { sessionRole } from "@/lib/session";
+import type { TextFieldTypes } from "@ionic/core";
 
 const router = useRouter();
 const name = ref("");
 const email = ref("");
-const role = ref<'user' | 'admin'>('user');
-const type = ref("password");
+const role = ref<"user" | "admin">("user");
+const type = ref<TextFieldTypes>("password");
 const password = ref("");
 const loadingState = ref(false);
 const error = ref<string | null>(null);

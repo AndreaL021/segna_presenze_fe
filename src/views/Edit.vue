@@ -76,11 +76,7 @@
             />
           </ion-item>
           <ion-item v-if="sessionRole === 'admin'">
-            <ion-select
-              label="Ruolo"
-              interface="popover"
-              v-model="role"
-            >
+            <ion-select label="Ruolo" interface="popover" v-model="role">
               <ion-select-option value="admin">Admin</ion-select-option>
               <ion-select-option value="user">Utente</ion-select-option>
             </ion-select>
@@ -127,11 +123,12 @@ import { logout } from "@/lib/auth";
 import { getUser, updateUser, User } from "@/lib/users";
 import { errorToast } from "@/lib/notify";
 import { sessionRole } from "@/lib/session";
+import type { TextFieldTypes } from "@ionic/core";
 
 const router = useRouter();
 const route = useRoute();
-const type = ref("password");
-const role = ref<'user' | 'admin'>('user');
+const type = ref<TextFieldTypes>("password");
+const role = ref<"user" | "admin">("user");
 const password = ref("");
 const loadingState = ref(false);
 const error = ref<string | null>(null);
@@ -147,7 +144,7 @@ const user = reactive<User>({
 const submit = async () => {
   error.value = null;
   loadingState.value = true;
-  user.role= role.value
+  user.role = role.value;
   try {
     if (!user.id || !user.role || !user.name || !user.email) {
       if (!user.id || !user.role) {
@@ -198,7 +195,7 @@ async function load() {
 
     const u = await getUser(userId.value);
     Object.assign(user, u);
-    role.value=u.role
+    role.value = u.role;
     if (!user.id) {
       throw new Error(
         "Errore durante il caricamento dei dati, ricaricare la pagina"
