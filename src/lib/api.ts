@@ -79,7 +79,7 @@ API.interceptors.response.use(
     // se 401 e non già ritentata
     if (status === 401 && !original?._retry && !isAuthRoute) {
       original._retry = true;
-      // ⬇️ Fast-exit: niente refresh se non ho RT
+      // Fast-exit: niente refresh se non ho RT
       const rt = await secureStorage.sget('refresh_token');
       if (!rt) {
         await secureStorage.sremove('access_token');
